@@ -278,9 +278,338 @@ def get_pi_list_text() -> str:
     return "\n".join(lines)
 
 
-def get_plo_list_text() -> str:
+def get_plo_list_text(program: str = "GENERIC") -> str:
     """Trả về danh sách PLO dạng text để đưa vào prompt LLM."""
+    data = PROGRAM_DATA.get(program, PROGRAM_DATA["GENERIC"])["plo"] if "PROGRAM_DATA" in dir() else PLO_DATA
     lines = []
-    for plo_code, desc in PLO_DATA.items():
+    for plo_code, desc in data.items():
         lines.append(f"{plo_code}: {desc}")
     return "\n".join(lines)
+
+
+# ============================================================
+# HTTT - HỆ THỐNG THÔNG TIN
+# PLO và PI chuẩn thực tế từ CTĐT ngành HTTT - ĐH Đà Nẵng
+# ============================================================
+
+HTTT_PLO_DATA: Dict[str, str] = {
+    "PLO-IS01": (
+        "Sinh viên tốt nghiệp ngành HTTT có khả năng thực hiện hoạt động học thuật và nghề nghiệp "
+        "HTTT tuân thủ pháp luật, liêm chính học thuật, yêu cầu tuân thủ doanh nghiệp, và đánh giá "
+        "được rủi ro đạo đức (riêng tư, bảo mật, tác động tổ chức) của giải pháp HTTT."
+    ),
+    "PLO-IS02": (
+        "Sinh viên tốt nghiệp ngành HTTT có khả năng vận dụng kiến thức nền tảng tính toán "
+        "(lập trình, mạng, CSDL ở mức phù hợp) và công cụ số để diễn giải và lựa chọn phương án "
+        "kỹ thuật đáp ứng yêu cầu nghiệp vụ."
+    ),
+    "PLO-IS03": (
+        "Sinh viên tốt nghiệp ngành HTTT có khả năng thu thập, phân tích và đặc tả yêu cầu nghiệp vụ "
+        "để tạo BRD/SRS có truy vết, làm cơ sở thiết kế và kiểm thử, đánh giá."
+    ),
+    "PLO-IS04": (
+        "Sinh viên tốt nghiệp ngành HTTT có khả năng mô hình hoá quy trình nghiệp vụ và thiết kế "
+        "giải pháp HTTT để cải tiến quy trình, đảm bảo phù hợp vận hành tổ chức và ràng buộc kiểm soát."
+    ),
+    "PLO-IS05": (
+        "Sinh viên tốt nghiệp ngành HTTT có khả năng thiết kế mô hình dữ liệu và cơ chế quản trị dữ liệu "
+        "để đảm bảo chất lượng, nhất quán, quyền sở hữu và khả năng khai thác dữ liệu trong tổ chức."
+    ),
+    "PLO-IS06": (
+        "Sinh viên tốt nghiệp ngành HTTT có khả năng xây dựng chỉ số KPI và báo cáo, trực quan hoá dữ liệu "
+        "để hỗ trợ ra quyết định, đảm bảo tính đúng, khả giải thích và phù hợp mục tiêu kinh doanh."
+    ),
+    "PLO-IS07": (
+        "Sinh viên tốt nghiệp ngành HTTT có khả năng thiết kế và triển khai tích hợp giữa các hệ thống "
+        "thông tin doanh nghiệp (ERP/CRM/DWH/ứng dụng) theo kiến trúc phù hợp, đảm bảo dòng dữ liệu, "
+        "tính toàn vẹn và khả vận hành."
+    ),
+    "PLO-IS08": (
+        "Sinh viên tốt nghiệp ngành HTTT có khả năng lập kế hoạch, phối hợp dự án HTTT và quản lý thay đổi "
+        "để triển khai thành công trong tổ chức, giao tiếp hiệu quả với stakeholder và cải tiến liên tục."
+    ),
+}
+
+HTTT_PI_DATA: Dict[str, Dict[str, str]] = {
+    "PLO-IS01": {
+        "PI-IS01.1": "Trích dẫn đúng nguồn dữ liệu/phần mềm và nêu rõ giấy phép sử dụng.",
+        "PI-IS01.2": "Lập checklist tuân thủ và risk register cho giải pháp HTTT.",
+        "PI-IS01.3": "Phân tích rủi ro đạo đức, riêng tư, bảo mật và tác động tổ chức, đề xuất biện pháp kiểm soát cơ bản.",
+    },
+    "PLO-IS02": {
+        "PI-IS02.1": "Biện minh lựa chọn kỹ thuật theo ràng buộc nghiệp vụ.",
+        "PI-IS02.2": "Cấu hình/tích hợp thành phần kỹ thuật theo tài liệu, kể cả tài liệu tiếng Anh, và tái lập được kết quả.",
+        "PI-IS02.3": "Ghi nhận quyết định kỹ thuật bằng technical decision record hoặc log nghiên cứu/cấu hình.",
+    },
+    "PLO-IS03": {
+        "PI-IS03.1": "Thu thập và xác nhận yêu cầu nghiệp vụ từ stakeholder bằng kỹ thuật phù hợp.",
+        "PI-IS03.2": "Chuyển hóa yêu cầu thành BRD/SRS hoặc user stories kèm acceptance criteria.",
+        "PI-IS03.3": "Thiết lập truy vết yêu cầu từ yêu cầu → thiết kế → kiểm thử và quản lý thay đổi liên quan.",
+    },
+    "PLO-IS04": {
+        "PI-IS04.1": "Mô hình hóa quy trình nghiệp vụ AS-IS/TO-BE bằng ký pháp phù hợp (BPMN/UML).",
+        "PI-IS04.2": "Xây dựng mô hình/use case/UML và solution blueprint ở mức đủ để truyền đạt giải pháp.",
+        "PI-IS04.3": "Nhận diện và biểu diễn các điểm kiểm soát nội bộ/ràng buộc kiểm soát trong giải pháp HTTT.",
+    },
+    "PLO-IS05": {
+        "PI-IS05.1": "Thiết kế mô hình dữ liệu/ERD và data dictionary gắn với nghiệp vụ.",
+        "PI-IS05.2": "Xác định data ownership, phân quyền và data catalog ở mức phù hợp.",
+        "PI-IS05.3": "Xây dựng quy tắc chất lượng dữ liệu và cách đo/giám sát dữ liệu.",
+    },
+    "PLO-IS06": {
+        "PI-IS06.1": "Xây dựng KPI tree và KPI definition sheet phù hợp mục tiêu kinh doanh.",
+        "PI-IS06.2": "Tạo dashboard/report BI kèm dataset/query và đối soát tính đúng của dữ liệu.",
+        "PI-IS06.3": "Diễn giải insight và đề xuất hành động cho stakeholder từ kết quả phân tích.",
+    },
+    "PLO-IS07": {
+        "PI-IS07.1": "Xây dựng integration spec và mapping dữ liệu giữa các hệ thống.",
+        "PI-IS07.2": "Triển khai tích hợp tối thiểu và kiểm thử luồng dữ liệu/chức năng tích hợp.",
+        "PI-IS07.3": "Lập architecture diagram và ADR để biện minh cho giải pháp tích hợp và khả vận hành.",
+    },
+    "PLO-IS08": {
+        "PI-IS08.1": "Lập project plan, risk register và RACI cho dự án/hoạt động triển khai HTTT.",
+        "PI-IS08.2": "Quản lý change request log và thực hiện impact analysis ở mức phù hợp.",
+        "PI-IS08.3": "Chuẩn bị training materials, UAT summary/report và biên bản họp để hỗ trợ stakeholder và cải tiến sau triển khai.",
+    },
+}
+
+# NL3 mapping cho HTTT
+HTTT_NL3_PLO_MAP: Dict[str, str] = {
+    "NL3-01": "PLO-IS03",  # Khai thác & xác nhận yêu cầu nghiệp vụ
+    "NL3-02": "PLO-IS04",  # Mô hình hoá quy trình & truy vết yêu cầu
+    "NL3-03": "PLO-IS05",  # Thiết kế giải pháp HTTT theo định hướng dữ liệu
+    "NL3-04": "PLO-IS06",  # Xây dựng mô hình dữ liệu & dashboard KPI
+    "NL3-05": "PLO-IS07",  # Thực hiện fit-gap & cấu hình ERP/CRM
+    "NL3-06": "PLO-IS02",  # Thiết kế & thực thi kiểm thử/UAT
+    "NL3-07": "PLO-IS08",  # Tổ chức truyền thông & bàn giao vận hành
+    "NL3-08": "PLO-IS01",  # Áp dụng kiểm soát rủi ro, tuân thủ & an toàn thông tin
+}
+
+# PO (Program Outcomes) ngành HTTT
+HTTT_PO_DATA: Dict[str, str] = {
+    "PO1": (
+        "Sau 3–5 năm tốt nghiệp, người học có thể đảm nhiệm vai trò Business/System Analyst, dẫn dắt "
+        "phân tích yêu cầu và mô hình hoá quy trình–dữ liệu để tạo BRD/SRS có truy vết cho dự án HTTT "
+        "doanh nghiệp, tuân thủ chuẩn mực nghề nghiệp."
+    ),
+    "PO2": (
+        "Sau 3–5 năm tốt nghiệp, người học có thể đảm nhiệm vai trò tư vấn phân tích–thiết kế giải pháp "
+        "HTTT, chuyển hoá nhu cầu vận hành thành kiến trúc, thiết kế dữ liệu và đặc tả I/O hỗ trợ "
+        "triển khai–tích hợp, tuân thủ quy định liên quan."
+    ),
+    "PO3": (
+        "Sau 3–5 năm tốt nghiệp, người học có thể đảm nhiệm vai trò QA/UAT hoặc quản trị chất lượng "
+        "HTTT, thiết kế và kiểm soát kiểm thử–nghiệm thu kèm bằng chứng, bảo đảm an toàn, bảo mật–riêng "
+        "tư dữ liệu và tuân thủ quy định."
+    ),
+    "PO4": (
+        "Sau 3–5 năm tốt nghiệp, người học có thể đảm nhiệm vai trò chuyên viên triển khai/CSKH HTTT, "
+        "phối hợp stakeholder đa bên để tư vấn, đào tạo người dùng và quản trị thay đổi, đảm bảo "
+        "bàn giao–vận hành theo SLA trong bối cảnh dự án/sản phẩm."
+    ),
+    "PO5": (
+        "Người học phát triển năng lực tự học suốt đời và chuẩn hoá tri thức nghiệp vụ–dữ liệu để "
+        "tạo giá trị cải tiến liên tục; có khả năng đổi mới qua portfolio/case study và thích ứng "
+        "chuyển đổi số/AI nhằm nâng cao hiệu quả nghề nghiệp."
+    ),
+}
+
+
+# ============================================================
+# KHMT - KHOA HỌC MÁY TÍNH
+# PLO và PI chuẩn thực tế từ CTĐT ngành KHMT - ĐH Đà Nẵng
+# ============================================================
+
+KHMT_PLO_DATA: Dict[str, str] = {
+    "PLO-CS01": (
+        "Sinh viên tốt nghiệp ngành KHMT có khả năng thực hiện hoạt động học thuật và nghề nghiệp KHMT "
+        "tuân thủ pháp luật, liêm chính nghiên cứu, và đánh giá được rủi ro đạo đức (riêng tư, thiên lệch, "
+        "an toàn) của mô hình/giải pháp."
+    ),
+    "PLO-CS02": (
+        "Sinh viên tốt nghiệp ngành KHMT có khả năng vận dụng nền tảng toán học, khoa học tính toán để "
+        "lập luận, diễn giải và biện minh lựa chọn mô hình, thuật toán phù hợp bài toán."
+    ),
+    "PLO-CS03": (
+        "Sinh viên tốt nghiệp ngành KHMT có khả năng mô hình hoá bài toán, phân tích, thiết kế thuật toán "
+        "và kiểm chứng độ chính xác, phức tạp bằng kiểm thử, đánh giá hoặc phân tích thực nghiệm."
+    ),
+    "PLO-CS04": (
+        "Sinh viên tốt nghiệp ngành KHMT có khả năng thiết kế và thực hiện thí nghiệm các phương pháp "
+        "đánh giá để so sánh mô hình, giải pháp về dữ liệu, A.I."
+    ),
+    "PLO-CS05": (
+        "Sinh viên tốt nghiệp ngành KHMT có khả năng xây dựng và đánh giá mô hình học máy, học sâu để "
+        "khai thác, xử lý, phân tích dữ liệu và tạo ra kết quả cho bài toán thực tế."
+    ),
+    "PLO-CS06": (
+        "Sinh viên tốt nghiệp ngành KHMT có khả năng áp dụng nguyên lý hệ thống (mạng, HĐH, CSDL, an toàn) "
+        "để thiết kế và đánh giá kiến trúc và giải pháp tính toán phục vụ bài toán về dữ liệu, A.I."
+    ),
+    "PLO-CS07": (
+        "Sinh viên tốt nghiệp ngành KHMT có khả năng giao tiếp rõ ràng (kỹ thuật và phi kỹ thuật), "
+        "làm việc nhóm để thống nhất yêu cầu, giải pháp và trình bày kết quả phân tích/mô hình hoá."
+    ),
+    "PLO-CS08": (
+        "Sinh viên tốt nghiệp ngành KHMT có khả năng lập kế hoạch tự học, tự nghiên cứu, thích ứng công nghệ "
+        "và đề xuất cải tiến, ý tưởng đổi mới trong bối cảnh nghề nghiệp KHMT."
+    ),
+}
+
+KHMT_PI_DATA: Dict[str, Dict[str, str]] = {
+    "PLO-CS01": {
+        "PI-CS01.1": "Trích dẫn đúng nguồn dữ liệu/mã nguồn, nêu rõ giấy phép và giới hạn sử dụng của dữ liệu, mô hình hoặc thành phần tái sử dụng.",
+        "PI-CS01.2": "Phân tích được rủi ro đạo đức – pháp lý – riêng tư – thiên lệch – an toàn của mô hình/giải pháp, và đề xuất biện pháp giảm thiểu ở mức phù hợp.",
+        "PI-CS01.3": "Tuân thủ các yêu cầu liêm chính học thuật/nghiên cứu và checklist tuân thủ trong quá trình phát triển, thử nghiệm, công bố kết quả.",
+    },
+    "PLO-CS02": {
+        "PI-CS02.1": "Thiết lập giả định, tiêu chí đánh giá và metric phù hợp cho bài toán hoặc mô hình.",
+        "PI-CS02.2": "Thực hiện phân tích thống kê cơ bản trên dữ liệu/đầu ra mô hình để hỗ trợ lập luận và ra quyết định.",
+        "PI-CS02.3": "Biện minh có căn cứ cho việc lựa chọn mô hình/thuật toán dựa trên dữ liệu, giả định, metric và kết quả phân tích.",
+    },
+    "PLO-CS03": {
+        "PI-CS03.1": "Đặc tả bài toán rõ ràng theo đầu vào/đầu ra, ràng buộc, tiêu chí chấp nhận và bộ dữ liệu hoặc ca kiểm thử tương ứng.",
+        "PI-CS03.2": "Phân tích được độ đúng, độ phức tạp hoặc tính phù hợp của thuật toán/giải pháp ở mức thích hợp.",
+        "PI-CS03.3": "So sánh được các thuật toán/giải pháp bằng benchmark hoặc thực nghiệm tối thiểu và rút ra kết luận.",
+    },
+    "PLO-CS04": {
+        "PI-CS04.1": "Thiết kế protocol thí nghiệm gồm chia dữ liệu, metric, baseline và cách kiểm soát biến phù hợp với bài toán.",
+        "PI-CS04.2": "Ghi log thí nghiệm, lưu cấu hình/môi trường và tái lập được kết quả ở mức phù hợp.",
+        "PI-CS04.3": "Thực hiện được ablation hoặc so sánh tham số/mô hình và diễn giải kết quả thực nghiệm.",
+    },
+    "PLO-CS05": {
+        "PI-CS05.1": "Tiền xử lý dữ liệu và xây dựng pipeline tối thiểu để chuẩn bị dữ liệu cho phân tích/học máy.",
+        "PI-CS05.2": "Huấn luyện mô hình và đánh giá kết quả bằng metric phù hợp với bài toán.",
+        "PI-CS05.3": "Trực quan hóa, diễn giải và chuyển hóa kết quả mô hình thành đầu ra hữu ích cho bài toán thực tế.",
+    },
+    "PLO-CS06": {
+        "PI-CS06.1": "Thiết kế được dữ liệu, luồng xử lý hoặc kiến trúc giải pháp ở mức phù hợp với bài toán dữ liệu/AI.",
+        "PI-CS06.2": "Đề xuất được các kiểm soát an toàn dữ liệu, quyền riêng tư và kiểm soát truy cập cơ bản trong giải pháp.",
+        "PI-CS06.3": "Đánh giá được kiến trúc/giải pháp theo các tiêu chí hiệu năng, độ tin cậy, khả vận hành ở mức cơ bản.",
+    },
+    "PLO-CS07": {
+        "PI-CS07.1": "Trình bày kết quả phân tích/mô hình hóa bằng báo cáo hoặc slide theo cấu trúc khoa học, rõ với cả đối tượng kỹ thuật và phi kỹ thuật.",
+        "PI-CS07.2": "Phối hợp nhóm, phản hồi review và retrospective theo quy trình làm việc đã thống nhất.",
+        "PI-CS07.3": "Diễn giải được kết quả, insight hoặc quyết định kỹ thuật cho stakeholder kèm căn cứ dữ liệu/metric.",
+    },
+    "PLO-CS08": {
+        "PI-CS08.1": "Lập được kế hoạch tự học/tự nghiên cứu và xây dựng portfolio minh chứng cho quá trình phát triển năng lực.",
+        "PI-CS08.2": "Thực hiện được mini research ở mức phù hợp, gồm survey tài liệu và baseline experiment.",
+        "PI-CS08.3": "Đề xuất được hướng nghề, hướng ứng dụng hoặc ý tưởng cải tiến và đánh giá sơ bộ tính khả thi.",
+    },
+}
+
+# NL3 mapping cho KHMT
+KHMT_NL3_PLO_MAP: Dict[str, str] = {
+    "NL3-01": "PLO-CS05",  # Thu thập–trích xuất–chuẩn hoá dữ liệu (BI)
+    "NL3-02": "PLO-CS02",  # Phân tích xu hướng và diễn giải nguyên nhân bằng dữ liệu
+    "NL3-03": "PLO-CS07",  # Thiết kế và công bố dashboard/báo cáo KPI
+    "NL3-04": "PLO-CS06",  # Thiết lập và vận hành CI/CD
+    "NL3-05": "PLO-CS08",  # Triển khai và chuẩn hoá môi trường chạy (Linux/container)
+    "NL3-06": "PLO-CS01",  # Giám sát và xử lý sự cố hệ thống (ITSM)
+    "NL3-07": "PLO-CS03",  # Thiết kế và thực thi kiểm thử
+    "NL3-08": "PLO-CS04",  # Phát triển và tối ưu phần mềm nhúng (MCU/RTOS)
+}
+
+
+# ============================================================
+# PROGRAM REGISTRY - Danh mục các chương trình đào tạo
+# ============================================================
+
+PROGRAM_DATA: Dict[str, dict] = {
+    "GENERIC": {
+        "name": "Chương trình chung (Khoa CNTT)",
+        "code": "GENERIC",
+        "plo": PLO_DATA,
+        "pi": PI_DATA,
+        "nl3_plo_map": {},
+        "po": {},
+        "docs_path": None,
+    },
+    "HTTT": {
+        "name": "Hệ thống thông tin",
+        "code": "HTTT",
+        "plo": HTTT_PLO_DATA,
+        "pi": HTTT_PI_DATA,
+        "nl3_plo_map": HTTT_NL3_PLO_MAP,
+        "po": HTTT_PO_DATA,
+        "docs_path": "TailieuMD/HTTT",
+    },
+    "KHMT": {
+        "name": "Khoa học máy tính",
+        "code": "KHMT",
+        "plo": KHMT_PLO_DATA,
+        "pi": KHMT_PI_DATA,
+        "nl3_plo_map": KHMT_NL3_PLO_MAP,
+        "po": {},
+        "docs_path": "TailieuMD/KHMT",
+    },
+}
+
+# Combined lookup (tất cả chương trình)
+ALL_PLO_DATA: Dict[str, str] = {**PLO_DATA, **HTTT_PLO_DATA, **KHMT_PLO_DATA}
+ALL_PI_DATA: Dict[str, Dict[str, str]] = {**PI_DATA, **HTTT_PI_DATA, **KHMT_PI_DATA}
+
+
+# ============================================================
+# EXTENDED HELPER FUNCTIONS (multi-program aware)
+# ============================================================
+
+def get_program_plo_data(program: str) -> Dict[str, str]:
+    """Lấy PLO_DATA cho chương trình cụ thể."""
+    return PROGRAM_DATA.get(program, PROGRAM_DATA["GENERIC"])["plo"]
+
+
+def get_program_pi_data(program: str) -> Dict[str, Dict[str, str]]:
+    """Lấy PI_DATA cho chương trình cụ thể."""
+    return PROGRAM_DATA.get(program, PROGRAM_DATA["GENERIC"])["pi"]
+
+
+def get_program_list() -> List[str]:
+    """Trả về danh sách mã chương trình đào tạo."""
+    return list(PROGRAM_DATA.keys())
+
+
+def get_pi_description_extended(pi_code: str) -> str:
+    """Lấy mô tả PI từ tất cả chương trình."""
+    for plo, pis in ALL_PI_DATA.items():
+        if pi_code in pis:
+            return pis[pi_code]
+    return ""
+
+
+def get_plo_for_pi_extended(pi_code: str) -> str:
+    """Xác định PLO chứa PI này từ tất cả chương trình."""
+    for plo, pis in ALL_PI_DATA.items():
+        if pi_code in pis:
+            return plo
+    return ""
+
+
+def get_pi_list_text_for_program(program: str = "GENERIC") -> str:
+    """Trả về danh sách PI dạng text cho chương trình cụ thể."""
+    plo_data = get_program_plo_data(program)
+    pi_data = get_program_pi_data(program)
+    lines = []
+    for plo_code, pis in pi_data.items():
+        plo_desc = plo_data.get(plo_code, "")
+        lines.append(f"\n{plo_code}: {plo_desc}")
+        for pi_code, pi_desc in pis.items():
+            lines.append(f"  {pi_code}: {pi_desc}")
+    return "\n".join(lines)
+
+
+def get_plo_list_text_for_program(program: str = "GENERIC") -> str:
+    """Trả về danh sách PLO dạng text cho chương trình cụ thể."""
+    plo_data = get_program_plo_data(program)
+    lines = [f"{code}: {desc}" for code, desc in plo_data.items()]
+    return "\n".join(lines)
+
+
+def detect_program_from_plo(plo_code: str) -> str:
+    """Xác định chương trình từ mã PLO."""
+    if plo_code.startswith("PLO-IS"):
+        return "HTTT"
+    if plo_code.startswith("PLO-CS"):
+        return "KHMT"
+    return "GENERIC"

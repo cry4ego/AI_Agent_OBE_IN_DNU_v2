@@ -1,0 +1,11 @@
+{"asctime": "2026-04-18 19:43:58,920", "name": "rag.index_builder", "levelname": "INFO", "message": "\u0110\u00e3 n\u1ea1p 21/21 t\u00e0i li\u1ec7u Markdown cho HTTT"}
+{"asctime": "2026-04-18 19:43:58,920", "name": "rag.index_builder", "levelname": "INFO", "message": "\u0110\u00e3 n\u1ea1p 21/21 t\u00e0i li\u1ec7u Markdown cho HTTT"}
+{"asctime": "2026-04-18 19:43:58,934", "name": "rag.index_builder", "levelname": "INFO", "message": "\u0110\u00e3 n\u1ea1p 22/22 t\u00e0i li\u1ec7u Markdown cho KHMT"}
+{"asctime": "2026-04-18 19:43:58,934", "name": "rag.index_builder", "levelname": "INFO", "message": "\u0110\u00e3 n\u1ea1p 22/22 t\u00e0i li\u1ec7u Markdown cho KHMT"}
+{"asctime": "2026-04-18 19:44:19,559", "name": "rag.index_builder", "levelname": "INFO", "message": "\u0110\u00e3 n\u1ea1p 21/21 t\u00e0i li\u1ec7u Markdown cho HTTT"}
+{"asctime": "2026-04-18 19:44:19,559", "name": "rag.index_builder", "levelname": "INFO", "message": "\u0110\u00e3 n\u1ea1p 21/21 t\u00e0i li\u1ec7u Markdown cho HTTT"}
+{"asctime": "2026-04-18 19:44:19,565", "name": "rag.index_builder", "levelname": "INFO", "message": "\u0110\u00e3 n\u1ea1p 22/22 t\u00e0i li\u1ec7u Markdown cho KHMT"}
+{"asctime": "2026-04-18 19:44:19,565", "name": "rag.index_builder", "levelname": "INFO", "message": "\u0110\u00e3 n\u1ea1p 22/22 t\u00e0i li\u1ec7u Markdown cho KHMT"}
+{"asctime": "2026-04-18 22:11:24,980", "name": "utils.outline_parser", "levelname": "WARNING", "message": "[OutlineParser] Kh\u00f4ng th\u1ec3 parse c\u1ea5u tr\u00fac r\u00f5 r\u00e0ng \u2014 d\u00f9ng raw_text fallback. LLM s\u1ebd x\u1eed l\u00fd tr\u1ef1c ti\u1ebfp. N\u00ean cung c\u1ea5p outline d\u1ea1ng b\u1ea3ng ho\u1eb7c danh s\u00e1ch \u0111\u00e1nh s\u1ed1."}
+{"asctime": "2026-04-18 22:30:37,889", "name": "rag.dcct_store", "levelname": "INFO", "message": "[DCCTStore] Indexed 8 chunks cho CSC4012"}
+{"asctime": "2026-04-18 22:30:37,889", "name": "rag.dcct_store", "levelname": "INFO", "message": "[DCCTStore] Indexed 8 chunks cho CSC4012"}

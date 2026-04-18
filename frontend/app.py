@@ -303,7 +303,7 @@ if "result" in st.session_state:
                 st.warning(e)
 
     # Tabs for different sections
-    tabs = st.tabs(["🎯 CLO", "🗺️ Mapping", "📅 Kế hoạch giảng dạy", "📊 Đánh giá", "📄 Export"])
+    tabs = st.tabs(["🎯 CLO", "🗺️ Mapping", "📅 Kế hoạch giảng dạy", "📊 Đánh giá", "📄 Export", "💬 Hỏi đáp ĐCCT"])
 
     # ---- Tab 1: CLO ----
     with tabs[0]:
@@ -406,6 +406,8 @@ if "result" in st.session_state:
                         if export_result.get("export_ready"):
                             filepath = export_result.get("export_path", "")
                             st.success(f"✅ Đã xuất: {Path(filepath).name}")
+                            # Auto-index khi xuất thành công (nếu chưa index)
+                            _auto_index_dcct(result)
                             with open(filepath, "rb") as f:
                                 st.download_button(
                                     "⬇️ Tải xuống DCCT.docx",
@@ -432,6 +434,20 @@ if "result" in st.session_state:
                     mime="application/json",
                 )
 
+        # Nút index thủ công
+        st.divider()
+        qa_col1, qa_col2 = st.columns([2, 1])
+        with qa_col1:
+            indexed = st.session_state.get("qa_indexed", False)
+            status_icon = "✅" if indexed else "⭕"
+            st.markdown(f"**Trạng thái Q&A Knowledge Base:** {status_icon} "
+                        f"{'Đã sẵn sàng' if indexed else 'Chưa index'}")
+        with qa_col2:
+            if st.button("🔍 Index vào Q&A KB", use_container_width=True):
+                info = _auto_index_dcct(result)
+                if info:
+                    st.success(f"Đã index {info['chunks_indexed']} chunks!")
+
         # Feedback section
         st.divider()
         st.markdown("### 💬 Phản hồi / Yêu cầu chỉnh sửa")
@@ -446,6 +462,220 @@ if "result" in st.session_state:
                         "Hiện tại, vui lòng chỉnh sửa thông tin đầu vào và chạy lại.")
             else:
                 st.warning("Vui lòng nhập phản hồi trước khi cập nhật.")
+
+    # ---- Tab 6: Q&A ĐCCT ----
+    with tabs[5]:
+        _render_qa_tab(result)
+
+# ============================================================
+# Q&A HELPER FUNCTIONS
+# ============================================================
+
+def _auto_index_dcct(state: dict) -> dict:
+    """Index ĐCCT vào knowledge base, lưu trạng thái vào session."""
+    try:
+        from agents.qa_agent import index_dcct_from_state
+        course_code = state.get("course_code", "UNKNOWN")
+        info = index_dcct_from_state(course_code, state)
+        st.session_state["qa_indexed"] = True
+        st.session_state["qa_course_code"] = course_code
+        st.session_state["qa_chunks_count"] = info["chunks_indexed"]
+        return info
+    except Exception as e:
+        st.session_state["qa_indexed"] = False
+        return {}
+
+
+def _render_qa_tab(result: dict):
+    """Render toàn bộ giao diện Q&A trong tab."""
+    from agents.qa_agent import (
+        ask_dcct_sync,
+        ask_dcct_dual_sync,
+        get_suggested_questions,
+        get_indexed_courses,
+    )
+
+    course_code = result.get("course_code", "")
+    course_name = result.get("course_name", "")
+
+    st.markdown("## 💬 Hỏi đáp về Đề cương Chi tiết Học phần")
+    st.caption(
+        "Đặt câu hỏi về ĐCCT — hệ thống sẽ trả lời theo vai trò Giảng viên hoặc Sinh viên."
+    )
+
+    # ── Auto-index nếu chưa có ────────────────────────────────────────────────
+    if not st.session_state.get("qa_indexed") or \
+       st.session_state.get("qa_course_code") != course_code:
+        with st.spinner("Đang chuẩn bị knowledge base Q&A..."):
+            info = _auto_index_dcct(result)
+        if info:
+            st.success(
+                f"✅ Knowledge base sẵn sàng: {info['chunks_indexed']} chunks "
+                f"({info['clo_count']} CLO, {info['session_count']} buổi học)"
+            )
+
+    # ── Cài đặt Q&A ──────────────────────────────────────────────────────────
+    st.markdown("---")
+    qa_cfg_col1, qa_cfg_col2 = st.columns([1, 2])
+
+    with qa_cfg_col1:
+        qa_mode = st.radio(
+            "Chế độ trả lời",
+            options=["dual", "sv", "gv"],
+            format_func=lambda x: {
+                "dual": "🔀 Đầu ra kép (GV + SV)",
+                "sv":   "🎓 Sinh viên",
+                "gv":   "👨‍🏫 Giảng viên",
+            }[x],
+            horizontal=False,
+            key="qa_mode",
+        )
+
+    with qa_cfg_col2:
+        # Câu hỏi gợi ý
+        suggest_role = "gv" if qa_mode == "gv" else "sv"
+        suggested = get_suggested_questions(course_code, suggest_role)
+        st.markdown("**Câu hỏi gợi ý:**")
+        for i, sq in enumerate(suggested[:3]):
+            if st.button(sq, key=f"sq_{i}", use_container_width=True):
+                st.session_state["qa_input_prefill"] = sq
+
+    # ── Input câu hỏi ─────────────────────────────────────────────────────────
+    prefill = st.session_state.pop("qa_input_prefill", "")
+    question = st.text_input(
+        "Nhập câu hỏi của bạn",
+        value=prefill,
+        placeholder="VD: Điểm học phần được tính như thế nào?",
+        key="qa_question_input",
+    )
+
+    ask_col1, ask_col2 = st.columns([3, 1])
+    with ask_col1:
+        ask_btn = st.button(
+            "🔍 Hỏi",
+            type="primary",
+            use_container_width=True,
+            disabled=not question.strip(),
+        )
+    with ask_col2:
+        clear_btn = st.button(
+            "🗑️ Xóa lịch sử",
+            use_container_width=True,
+        )
+
+    if clear_btn:
+        st.session_state["qa_history"] = []
+        st.rerun()
+
+    # ── Xử lý câu hỏi ─────────────────────────────────────────────────────────
+    if ask_btn and question.strip():
+        history = st.session_state.get("qa_history", [])
+
+        with st.spinner("🤖 Đang tìm kiếm và soạn câu trả lời..."):
+            try:
+                if qa_mode == "dual":
+                    qa_result = ask_dcct_dual_sync(course_code, question, history)
+                    answer_gv = qa_result.get("answer_gv", "")
+                    answer_sv = qa_result.get("answer_sv", "")
+                    sources   = qa_result.get("sources", [])
+                    warning   = qa_result.get("warning", "")
+                else:
+                    qa_result = ask_dcct_sync(course_code, question, qa_mode, history)
+                    answer_gv = qa_result.get("answer", "") if qa_mode == "gv" else ""
+                    answer_sv = qa_result.get("answer", "") if qa_mode == "sv" else ""
+                    sources   = qa_result.get("sources", [])
+                    warning   = qa_result.get("warning", "")
+
+                if warning and not answer_gv and not answer_sv:
+                    st.error(f"⚠️ {warning}")
+                else:
+                    # Lưu vào lịch sử
+                    entry = {
+                        "question":  question,
+                        "answer_gv": answer_gv,
+                        "answer_sv": answer_sv,
+                        "mode":      qa_mode,
+                        "sources":   sources,
+                    }
+                    history.append({"role": "user",      "content": question})
+                    history.append({"role": "assistant", "content": answer_gv or answer_sv})
+                    st.session_state["qa_history"] = history[-10:]  # giữ 5 lượt gần nhất
+
+                    # Hiển thị câu trả lời mới nhất ngay
+                    _display_qa_answer(question, entry, qa_mode)
+
+            except Exception as e:
+                st.error(f"Lỗi khi xử lý câu hỏi: {e}")
+
+    # ── Lịch sử Q&A ───────────────────────────────────────────────────────────
+    history_entries = [
+        e for e in st.session_state.get("qa_history", []) if e.get("role") == "user"
+    ]
+    if len(history_entries) > 1:  # Hiển thị lịch sử nếu có hơn 1 lượt hỏi
+        st.markdown("---")
+        st.markdown("#### 📜 Lịch sử hỏi đáp")
+        # Rebuild full entries from session
+        full_history = st.session_state.get("_qa_full_history", [])
+        for i, entry in enumerate(reversed(full_history[:-1])):  # bỏ lượt gần nhất đã hiển thị
+            with st.expander(f"Q{len(full_history) - i - 1}: {entry['question'][:80]}"):
+                _display_qa_answer(entry["question"], entry, entry.get("mode", "sv"))
+
+
+def _display_qa_answer(question: str, entry: dict, mode: str):
+    """Render một câu trả lời Q&A."""
+    answer_gv = entry.get("answer_gv", "")
+    answer_sv = entry.get("answer_sv", "")
+    sources   = entry.get("sources", [])
+
+    st.markdown(f"**Q: {question}**")
+
+    if mode == "dual" and answer_gv and answer_sv:
+        col_gv, col_sv = st.columns(2)
+        with col_gv:
+            st.markdown(
+                '<div style="background:#e8f4f8;padding:1rem;border-radius:8px;'
+                'border-left:4px solid #2d6a9f">'
+                '<strong>👨‍🏫 Câu trả lời cho Giảng viên</strong></div>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(answer_gv)
+        with col_sv:
+            st.markdown(
+                '<div style="background:#f0f8f0;padding:1rem;border-radius:8px;'
+                'border-left:4px solid #28a745">'
+                '<strong>🎓 Câu trả lời cho Sinh viên</strong></div>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(answer_sv)
+    elif answer_gv:
+        st.markdown(
+            '<div style="background:#e8f4f8;padding:1rem;border-radius:8px;'
+            'border-left:4px solid #2d6a9f">'
+            '<strong>👨‍🏫 Câu trả lời (Giảng viên)</strong></div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(answer_gv)
+    elif answer_sv:
+        st.markdown(
+            '<div style="background:#f0f8f0;padding:1rem;border-radius:8px;'
+            'border-left:4px solid #28a745">'
+            '<strong>🎓 Câu trả lời (Sinh viên)</strong></div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(answer_sv)
+
+    # Sources
+    if sources:
+        with st.expander(f"📌 Nguồn tham chiếu ({len(sources)} mục)", expanded=False):
+            for s in sources:
+                section = s.get("section", "")
+                label = {
+                    "clo": "CLO", "teaching_plan": "Kế hoạch giảng dạy",
+                    "assessment": "Đánh giá", "mapping": "Mapping",
+                    "rubric": "Rubric", "overview": "Tổng quan",
+                }.get(section, section)
+                st.markdown(f"**[{label}]** {s.get('content','')[:200]}...")
+
 
 # ============================================================
 # FOOTER

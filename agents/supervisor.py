@@ -1,6 +1,11 @@
 """
-Supervisor Agent - Điều phối luồng workflow OBE DCCT
-Không sử dụng LLM - chỉ logic thuần để routing
+Supervisor Agent - Điều phối luồng workflow OBE DCCT.
+
+Không sử dụng LLM - chỉ logic thuần để routing.
+
+Hai luồng dựa trên outline_provided:
+  REVERSE (outline_provided=True):  sườn GV bất biến, Teaching Plan ở chế độ PRESERVE
+  FORWARD (outline_provided=False): Teaching Plan tự sinh từ CLO
 """
 
 from typing import Dict, Any
@@ -28,25 +33,48 @@ def supervisor_node(state: Dict[str, Any]) -> Dict[str, Any]:
     1. current_step: bước hiện tại / đã hoàn thành
     2. critic_feedback: phản hồi từ Critic sau mỗi bước
     3. retry_counts: số lần đã retry mỗi bước
-    
+    4. outline_provided: xác định luồng REVERSE hay FORWARD
+
     Quy tắc routing:
     - Nếu current_step là tên bước thông thường → route thẳng
     - Nếu current_step là "X_done" → kiểm tra critic_feedback → tiến hoặc retry
     """
-    current = state.get("current_step", "understand")
-    retry_counts = dict(state.get("retry_counts", {}))
+    current         = state.get("current_step", "understand")
+    retry_counts    = dict(state.get("retry_counts", {}))
     critic_feedback = state.get("critic_feedback", [])
+    outline_provided = state.get("outline_provided", False)
+    outline_sessions = state.get("outline_sessions") or []
 
-    logger.info(f"Supervisor: current_step={current}, retries={retry_counts}")
+    logger.info(
+        f"Supervisor: current_step={current}, retries={retry_counts}, "
+        f"outline_provided={outline_provided}, sessions={len(outline_sessions)}"
+    )
+
+    # Guard: outline_provided=True nhưng outline_sessions rỗng → warn
+    if (
+        outline_provided
+        and current == "teaching_plan"
+        and not outline_sessions
+    ):
+        logger.warning(
+            "[Supervisor] outline_provided=True nhưng outline_sessions rỗng. "
+            "Teaching Plan sẽ chạy ở GENERATE mode làm fallback."
+        )
 
     # === TRƯỜNG HỢP 1: Bước thông thường (lần đầu hoặc đã được set) ===
     if current in STEP_SEQUENCE:
-        logger.info(f"Supervisor → {current}")
+        mode_tag = "PRESERVE" if (outline_provided and current == "teaching_plan") else ""
+        logger.info(f"Supervisor → {current} {mode_tag}")
         return {"current_step": current}
 
     # === TRƯỜNG HỢP 2: Bước vừa hoàn thành (X_done) ===
     if current in STEP_DONE_MAP:
         step_name = STEP_DONE_MAP[current]
+
+        # Ghi log luồng sau khi understand xong
+        if step_name == "understand":
+            flow = "REVERSE-MAPPING" if outline_provided else "FORWARD-GENERATION"
+            logger.info(f"[Supervisor] Luồng xác định: {flow}")
 
         # Tìm phản hồi critic gần nhất cho bước này
         step_feedbacks = [
@@ -77,9 +105,10 @@ def supervisor_node(state: Dict[str, Any]) -> Dict[str, Any]:
             logger.info(f"Supervisor: {step_name} ✓ → {next_step}")
             return {"current_step": next_step}
 
-    # === TRƯỜNG HỢP 3: Sau final_validator đã retry từ validate ===
+    # === TRƯỜNG HỢP 3: Sau final_validator hoặc trạng thái không xác định ===
     if current == "final_validator_done" or current not in STEP_SEQUENCE + list(STEP_DONE_MAP.keys()):
         logger.warning(f"Supervisor: Trạng thái không xác định '{current}', reset về understand")
         return {"current_step": "understand"}
 
     return {"current_step": current}
+

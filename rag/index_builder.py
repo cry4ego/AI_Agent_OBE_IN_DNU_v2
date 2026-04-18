@@ -3,10 +3,16 @@ RAG Index Builder - Khởi tạo vector store với kiến thức OBE
 Sử dụng Qdrant in-memory để dễ triển khai, không cần server riêng
 """
 
+import os
 import json
 from typing import Optional
 from utils.logger import get_logger
-from utils.obe_utils import PLO_DATA, PI_DATA, BLOOM_LEVELS, IRMA_LEVELS
+from utils.obe_utils import (
+    PLO_DATA, PI_DATA, BLOOM_LEVELS, IRMA_LEVELS,
+    HTTT_PLO_DATA, HTTT_PI_DATA, HTTT_PO_DATA,
+    KHMT_PLO_DATA, KHMT_PI_DATA,
+    PROGRAM_DATA,
+)
 
 logger = get_logger("rag.index_builder")
 
@@ -118,6 +124,125 @@ def _build_obe_documents() -> list:
             metadata={"type": "obe_principles"},
         )
     )
+
+    # ---- Dữ liệu chương trình thực tế: HTTT & KHMT ----
+    docs.extend(_build_program_documents("HTTT", HTTT_PLO_DATA, HTTT_PI_DATA, HTTT_PO_DATA))
+    docs.extend(_build_program_documents("KHMT", KHMT_PLO_DATA, KHMT_PI_DATA, {}))
+
+    # ---- Nạp tài liệu Markdown từ TailieuMD ----
+    docs.extend(_load_tailieu_md_documents())
+
+    return docs
+
+
+def _build_program_documents(
+    program_code: str,
+    plo_data: dict,
+    pi_data: dict,
+    po_data: dict,
+) -> list:
+    """Xây dựng documents cho một chương trình đào tạo cụ thể."""
+    from langchain_core.documents import Document
+
+    docs = []
+    program_info = PROGRAM_DATA.get(program_code, {})
+    program_name = program_info.get("name", program_code)
+
+    # PLO documents
+    for plo_code, plo_desc in plo_data.items():
+        docs.append(
+            Document(
+                page_content=f"[{program_code}] {plo_code}: {plo_desc}",
+                metadata={"type": "plo", "code": plo_code, "program": program_code},
+            )
+        )
+
+    # PI documents
+    for plo_code, pis in pi_data.items():
+        plo_desc = plo_data.get(plo_code, "")
+        for pi_code, pi_desc in pis.items():
+            docs.append(
+                Document(
+                    page_content=f"[{program_code}] {pi_code} (thuộc {plo_code}): {pi_desc}",
+                    metadata={
+                        "type": "pi",
+                        "code": pi_code,
+                        "parent_plo": plo_code,
+                        "program": program_code,
+                    },
+                )
+            )
+
+    # PO documents
+    for po_code, po_desc in po_data.items():
+        docs.append(
+            Document(
+                page_content=f"[{program_code}] {po_code} - {program_name}: {po_desc}",
+                metadata={"type": "po", "code": po_code, "program": program_code},
+            )
+        )
+
+    return docs
+
+
+def _load_tailieu_md_documents() -> list:
+    """
+    Nạp các tài liệu Markdown thực tế từ thư mục TailieuMD.
+    Hỗ trợ HTTT và KHMT, bỏ qua file lỗi mã hóa.
+    """
+    from langchain_core.documents import Document
+
+    docs = []
+
+    # Tìm thư mục TailieuMD từ workspace root
+    workspace_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    tailieu_base = os.path.join(os.path.dirname(workspace_root), "TailieuMD")
+
+    # Fallback: tìm bên trong cùng thư mục workspace
+    if not os.path.isdir(tailieu_base):
+        tailieu_base = os.path.join(workspace_root, "..", "TailieuMD")
+    if not os.path.isdir(tailieu_base):
+        logger.warning(f"Không tìm thấy thư mục TailieuMD tại: {tailieu_base}")
+        return docs
+
+    program_dirs = {
+        "HTTT": os.path.join(tailieu_base, "HTTT"),
+        "KHMT": os.path.join(tailieu_base, "KHMT"),
+    }
+
+    for program_code, dir_path in program_dirs.items():
+        if not os.path.isdir(dir_path):
+            logger.warning(f"Không tìm thấy thư mục {program_code}: {dir_path}")
+            continue
+
+        md_files = [f for f in os.listdir(dir_path) if f.endswith(".md")]
+        loaded = 0
+        for fname in md_files:
+            fpath = os.path.join(dir_path, fname)
+            try:
+                with open(fpath, encoding="utf-8") as fp:
+                    content = fp.read().strip()
+                if not content:
+                    continue
+                # Giới hạn 4000 ký tự / chunk để tránh quá tải embedding
+                chunks = [content[i : i + 4000] for i in range(0, len(content), 4000)]
+                for idx, chunk in enumerate(chunks):
+                    docs.append(
+                        Document(
+                            page_content=f"[{program_code}][{fname}] {chunk}",
+                            metadata={
+                                "type": "tailieu_md",
+                                "program": program_code,
+                                "filename": fname,
+                                "chunk_index": idx,
+                            },
+                        )
+                    )
+                loaded += 1
+            except Exception as e:
+                logger.warning(f"Bỏ qua file {fname}: {e}")
+
+        logger.info(f"Đã nạp {loaded}/{len(md_files)} tài liệu Markdown cho {program_code}")
 
     return docs
 

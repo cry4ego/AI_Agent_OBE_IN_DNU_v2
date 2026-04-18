@@ -43,7 +43,12 @@ async def critic_node(state: Dict[str, Any]) -> Dict[str, Any]:
     # Lấy output cần review
     output_json, context = _extract_step_output(state, step_name)
 
-    system_prompt = build_critic_system_prompt(step_name)
+    # Truyền extra context cho system prompt (e.g. outline_provided)
+    extra_ctx = {}
+    if step_name == "teaching_plan":
+        extra_ctx["outline_provided"] = state.get("outline_provided", False)
+
+    system_prompt = build_critic_system_prompt(step_name, extra_ctx)
     user_prompt = build_critic_user_prompt(step_name, output_json, context)
 
     try:
@@ -115,13 +120,37 @@ def _extract_step_output(state: Dict, step_name: str) -> tuple:
         context = f"{len(state.get('clo_list', []))} CLO cần được ánh xạ"
 
     elif step_name == "teaching_plan":
-        plan = state.get("teaching_plan", [])
+        plan             = state.get("teaching_plan", [])
+        outline_provided = state.get("outline_provided", False)
+        outline_sessions = state.get("outline_sessions") or []
+
         output = {
-            "total_sessions": len(plan),
-            "teaching_plan_sample": plan[:5],  # chỉ gửi mẫu
-            "clo_coverage": _count_clo_coverage(plan),
+            "total_sessions":      len(plan),
+            "teaching_plan_sample": plan[:5],
+            "clo_coverage":        _count_clo_coverage(plan),
+            "outline_provided":    outline_provided,
         }
-        context = f"Học phần {state.get('credits', '3')} tín chỉ, {len(state.get('clo_list', []))} CLO"
+
+        if outline_provided and outline_sessions:
+            # Thêm so sánh topic để Critic kiểm tra preserve
+            outline_topics  = [s.get("topic", "") for s in outline_sessions]
+            plan_topics     = [s.get("content", "") for s in plan]
+            outline_mismatch = _check_outline_preservation(outline_topics, plan_topics)
+            output["outline_session_count"]     = len(outline_sessions)
+            output["plan_session_count"]         = len(plan)
+            output["outline_topics_sample"]      = outline_topics[:5]
+            output["plan_topics_sample"]          = plan_topics[:5]
+            output["outline_mismatch_detected"]  = bool(outline_mismatch)
+            output["mismatch_details"]            = outline_mismatch[:3]  # first 3 diffs
+
+        context = (
+            f"Học phần {state.get('credits', '3')} tín chỉ, "
+            f"{len(state.get('clo_list', []))} CLO"
+            + (
+                f" | CHẾ ĐỘ: PRESERVE (GV đã cung cấp {len(outline_sessions)} buổi)"
+                if outline_provided else " | CHẾ ĐỘ: GENERATE"
+            )
+        )
 
     elif step_name == "assessment":
         assessment_plan = state.get("assessment_plan", [])
@@ -138,6 +167,35 @@ def _extract_step_output(state: Dict, step_name: str) -> tuple:
         context = ""
 
     return json.dumps(output, ensure_ascii=False, indent=2), context
+
+
+def _check_outline_preservation(
+    outline_topics: list, plan_topics: list
+) -> list:
+    """
+    So sánh topic GV với topic trong teaching_plan.
+    Trả về list các chênh lệch (nếu có).
+    """
+    mismatches = []
+    for i, (orig, gen) in enumerate(zip(outline_topics, plan_topics)):
+        # Normalize: lower + strip để tránh lỗi format nhỏ
+        orig_n = orig.strip().lower()
+        gen_n  = gen.strip().lower()
+        if orig_n and gen_n and orig_n != gen_n:
+            # Cho phép gen là superset (có thêm chi tiết)
+            if orig_n not in gen_n and gen_n not in orig_n:
+                mismatches.append({
+                    "session": i + 1,
+                    "outline_topic": orig[:80],
+                    "plan_topic":    gen[:80],
+                })
+    if len(outline_topics) != len(plan_topics):
+        mismatches.append({
+            "session": "N/A",
+            "outline_topic": f"Outline có {len(outline_topics)} buổi",
+            "plan_topic":    f"Teaching plan có {len(plan_topics)} buổi",
+        })
+    return mismatches
 
 
 def _count_clo_coverage(teaching_plan) -> Dict:
@@ -169,6 +227,21 @@ def _basic_critic(state: Dict, step_name: str) -> Dict:
         if not state.get("teaching_plan"):
             issues.append("Kế hoạch giảng dạy trống")
             passed = False
+        else:
+            # Kiểm tra outline preservation (chỉ khi outline_provided=True)
+            outline_provided = state.get("outline_provided", False)
+            outline_sessions = state.get("outline_sessions") or []
+            if outline_provided and outline_sessions:
+                plan_topics    = [s.get("content", "") for s in state["teaching_plan"]]
+                outline_topics = [s.get("topic", "") for s in outline_sessions]
+                mismatches     = _check_outline_preservation(outline_topics, plan_topics)
+                if mismatches:
+                    for m in mismatches:
+                        issues.append(
+                            f"[Outline Guard] Buổi {m['session']}: "
+                            f"GV='{m['outline_topic']}' ≠ Plan='{m['plan_topic']}'"
+                        )
+                    passed = False
 
     elif step_name == "assessment":
         assessment_plan = state.get("assessment_plan", [])

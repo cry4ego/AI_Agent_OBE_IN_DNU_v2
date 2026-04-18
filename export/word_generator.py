@@ -78,6 +78,18 @@ async def export_node(state: Dict[str, Any]) -> Dict[str, Any]:
         doc.save(str(filepath))
         logger.info(f"[Export] File xuất thành công: {filepath}")
 
+        # ── Auto-index ĐCCT vào knowledge base Q&A ──────────────────────────
+        try:
+            from agents.qa_agent import index_dcct_from_state
+            course_code_key = course_info.get("code", state.get("course_code", "UNKNOWN"))
+            idx_info = index_dcct_from_state(course_code_key, state)
+            logger.info(
+                f"[Export] ĐCCT indexed vào Q&A store: "
+                f"{idx_info['chunks_indexed']} chunks cho {course_code_key}"
+            )
+        except Exception as idx_err:
+            logger.warning(f"[Export] Không thể index ĐCCT vào Q&A store: {idx_err}")
+
         return {
             "export_ready": True,
             "export_path": str(filepath),
