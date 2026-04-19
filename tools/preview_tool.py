@@ -27,7 +27,7 @@ async def preview_node(state: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "preview_data": preview_data,
         "needs_human_input": True,
-        "current_step": "understand",  # Reset để allow revision sau review
+        "current_step": "preview_done",
     }
 
 

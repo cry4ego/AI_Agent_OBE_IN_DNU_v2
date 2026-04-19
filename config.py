@@ -21,14 +21,18 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 GEMINI_MODEL = "gemini-1.5-pro"
 CLAUDE_MODEL = "claude-3-5-sonnet-20241022"
 
+# groq api
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+GROQ_MODEL = "llama-3.3-70b-versatile"  # hoặc gemma2-9b-it, mixtral-8x7b...
+
 AGENT_MODELS = {
-    "supervisor": CLAUDE_MODEL if ANTHROPIC_API_KEY else GEMINI_MODEL,
-    "understand": GEMINI_MODEL,
-    "mapping": CLAUDE_MODEL if ANTHROPIC_API_KEY else GEMINI_MODEL,
-    "teaching_plan": GEMINI_MODEL,
-    "assessment": CLAUDE_MODEL if ANTHROPIC_API_KEY else GEMINI_MODEL,
-    "validator": CLAUDE_MODEL if ANTHROPIC_API_KEY else GEMINI_MODEL,
-    "critic": CLAUDE_MODEL if ANTHROPIC_API_KEY else GEMINI_MODEL,
+    "supervisor": GROQ_MODEL,
+    "understand": GROQ_MODEL,
+    "mapping": GROQ_MODEL,
+    "teaching_plan": GROQ_MODEL,
+    "assessment": GROQ_MODEL,
+    "validator": GROQ_MODEL,
+    "critic": GROQ_MODEL,
 }
 
 MODEL_PARAMS = {
@@ -43,11 +47,11 @@ CONFIDENCE_THRESHOLDS = {
 }
 
 def get_agent_model(agent_name: str) -> str:
-    return AGENT_MODELS.get(agent_name, GEMINI_MODEL)
+    return AGENT_MODELS.get(agent_name, GROQ_MODEL)
 
 def validate_config() -> bool:
-    if not GOOGLE_API_KEY and not ANTHROPIC_API_KEY:
-        print(" Cần ít nhất một API Key: GOOGLE_API_KEY hoặc ANTHROPIC_API_KEY")
+    if not GROQ_API_KEY and not GOOGLE_API_KEY and not ANTHROPIC_API_KEY:
+        print(" Cần ít nhất một API Key: GROQ_API_KEY, GOOGLE_API_KEY hoặc ANTHROPIC_API_KEY")
         return False
     print(" Configuration validated successfully!")
     return True

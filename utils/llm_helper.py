@@ -1,6 +1,6 @@
 """
 LLM Helper - Factory function tạo LLM instance theo cấu hình agent
-Hỗ trợ Gemini (Google) và Claude (Anthropic)
+Hỗ trợ Groq (primary), Gemini (Google) và Claude (Anthropic)
 """
 
 import sys
@@ -16,7 +16,7 @@ def get_llm(agent_name: str):
     """
     Tạo LLM instance phù hợp cho agent.
     
-    Ưu tiên: Claude nếu có ANTHROPIC_API_KEY, fallback về Gemini.
+    Ưu tiên: Groq → Gemini → Claude.
     
     Args:
         agent_name: Tên agent (vd: "supervisor", "understand")
@@ -24,45 +24,54 @@ def get_llm(agent_name: str):
     Returns:
         LangChain ChatModel instance
     """
-    from config import GOOGLE_API_KEY, ANTHROPIC_API_KEY, get_agent_model, MODEL_PARAMS
+    from config import GROQ_API_KEY, GROQ_MODEL, GOOGLE_API_KEY, ANTHROPIC_API_KEY, MODEL_PARAMS
 
-    model_name = get_agent_model(agent_name)
-
-    # Thử Claude trước (nếu model là Claude và có API key)
-    if "claude" in model_name.lower() and ANTHROPIC_API_KEY:
+    # Groq là primary
+    if GROQ_API_KEY:
         try:
-            from langchain_anthropic import ChatAnthropic
-            logger.info(f"[{agent_name}] Sử dụng Claude: {model_name}")
-            return ChatAnthropic(
-                model=model_name,
-                api_key=ANTHROPIC_API_KEY,
+            from langchain_groq import ChatGroq
+            logger.info(f"[{agent_name}] Sử dụng Groq: {GROQ_MODEL}")
+            return ChatGroq(
+                model=GROQ_MODEL,
+                api_key=GROQ_API_KEY,
                 temperature=MODEL_PARAMS["temperature"],
-                max_tokens=MODEL_PARAMS["max_tokens"],
             )
         except ImportError:
-            logger.warning("langchain_anthropic chưa được cài đặt, fallback về Gemini")
+            logger.warning("langchain_groq chưa được cài đặt, fallback về Gemini")
         except Exception as e:
-            logger.warning(f"Lỗi khởi tạo Claude: {e}, fallback về Gemini")
+            logger.warning(f"Lỗi khởi tạo Groq: {e}, fallback về Gemini")
 
     # Fallback về Gemini
     if GOOGLE_API_KEY:
         try:
             from langchain_google_genai import ChatGoogleGenerativeAI
             from config import GEMINI_MODEL
-
-            gemini_model = GEMINI_MODEL if "claude" in model_name.lower() else model_name
-            logger.info(f"[{agent_name}] Sử dụng Gemini: {gemini_model}")
+            logger.info(f"[{agent_name}] Sử dụng Gemini: {GEMINI_MODEL}")
             return ChatGoogleGenerativeAI(
-                model=gemini_model,
+                model=GEMINI_MODEL,
                 google_api_key=GOOGLE_API_KEY,
                 temperature=MODEL_PARAMS["temperature"],
             )
         except Exception as e:
-            logger.error(f"Lỗi khởi tạo Gemini: {e}")
-            raise
+            logger.warning(f"Lỗi khởi tạo Gemini: {e}, fallback về Claude")
+
+    # Fallback về Claude
+    if ANTHROPIC_API_KEY:
+        try:
+            from langchain_anthropic import ChatAnthropic
+            from config import CLAUDE_MODEL
+            logger.info(f"[{agent_name}] Sử dụng Claude: {CLAUDE_MODEL}")
+            return ChatAnthropic(
+                model=CLAUDE_MODEL,
+                api_key=ANTHROPIC_API_KEY,
+                temperature=MODEL_PARAMS["temperature"],
+                max_tokens=MODEL_PARAMS["max_tokens"],
+            )
+        except Exception as e:
+            logger.error(f"Lỗi khởi tạo Claude: {e}")
 
     raise ValueError(
-        "Cần ít nhất một API Key hợp lệ: GOOGLE_API_KEY hoặc ANTHROPIC_API_KEY"
+        "Cần ít nhất một API Key hợp lệ: GROQ_API_KEY, GOOGLE_API_KEY hoặc ANTHROPIC_API_KEY"
     )
 
 

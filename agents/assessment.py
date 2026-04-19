@@ -28,7 +28,7 @@ async def assessment_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
     logger.info(f"[Assessment] Thiết kế đánh giá cho {len(clo_list)} CLO")
 
-    has_lab = extracted_info.get("lab_periods", 0) > 0
+    has_lab = int(extracted_info.get("lab_periods", 0) or 0) > 0
     clo_list_text = _format_clo_list(clo_list)
     mapping_summary = _format_mapping_summary(mapping_matrix, clo_list)
     course_info = (

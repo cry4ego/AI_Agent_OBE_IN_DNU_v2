@@ -94,9 +94,9 @@ def build_graph():
         }
     )
 
-    # ==================== Preview → Supervisor ====================
-    # Giảng viên feedback → quay lại Supervisor xử lý
-    workflow.add_edge("preview", "supervisor")
+    # ==================== Preview → Export ====================
+    # Sau preview, tự động xuất file Word
+    workflow.add_edge("preview", "export")
 
     # ==================== Export là điểm kết thúc ====================
     workflow.add_edge("export", END)

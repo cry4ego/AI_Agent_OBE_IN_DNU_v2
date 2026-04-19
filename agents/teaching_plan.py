@@ -47,8 +47,8 @@ async def teaching_plan_node(state: Dict[str, Any]) -> Dict[str, Any]:
     )
 
     # Tính phân bổ thời gian
-    lab_periods    = extracted_info.get("lab_periods", 0)
-    theory_periods = extracted_info.get("theory_periods", 0)
+    lab_periods    = int(extracted_info.get("lab_periods", 0) or 0)
+    theory_periods = int(extracted_info.get("theory_periods", 0) or 0)
     if theory_periods + lab_periods > 0:
         theory_ratio = theory_periods / (theory_periods + lab_periods)
     else:
@@ -56,7 +56,7 @@ async def teaching_plan_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
     # Nếu PRESERVE: ưu tiên tổng tiết từ outline (tổng estimated_periods)
     if outline_provided and outline_sessions and not is_raw_text_fallback(outline_sessions):
-        outline_total = sum(s.get("estimated_periods", 1) for s in outline_sessions)
+        outline_total = sum(int(s.get("estimated_periods", 1) or 1) for s in outline_sessions)
         if outline_total > 0 and abs(outline_total - int(credits) * 15) > 5:
             logger.info(
                 f"[TeachingPlan] Tổng tiết outline ({outline_total}) "
@@ -158,7 +158,7 @@ def _enforce_outline_skeleton(
     for os_item in outline_sessions:
         no     = os_item["no"]
         topic  = os_item["topic"]
-        periods = os_item.get("estimated_periods", 1)
+        periods = int(os_item.get("estimated_periods", 1) or 1)
         stype  = os_item.get("session_type", "LT")
         subs   = os_item.get("subtopics", [])
 

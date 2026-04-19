@@ -10,7 +10,7 @@ Hai chế độ:
 # ─────────────────────────────────────────────────────────────────────────────
 
 UNDERSTAND_REVERSE_SYSTEM_PROMPT = """Bạn là chuyên gia thiết kế chương trình đào tạo theo chuẩn OBE (Outcome-Based Education)
-tại Khoa Công nghệ Thông tin, Trường Đại học Đà Nẵng.
+tại Khoa Công nghệ Thông tin, Trường Đại học Đại Nam.
 
 === CHẾ ĐỘ: REVERSE-MAPPING (Sườn GV → CLO) ===
 
@@ -94,7 +94,7 @@ QUAN TRỌNG: Trả về ĐÚNG định dạng JSON sau, KHÔNG thêm text ngoà
 # ─────────────────────────────────────────────────────────────────────────────
 
 UNDERSTAND_FORWARD_SYSTEM_PROMPT = """Bạn là chuyên gia thiết kế chương trình đào tạo theo chuẩn OBE (Outcome-Based Education)
-tại Khoa Công nghệ Thông tin, Trường Đại học Đà Nẵng.
+tại Khoa Công nghệ Thông tin, Trường Đại học Đại Nam.
 
 === CHẾ ĐỘ: FORWARD-GENERATION (Không có sườn GV) ===
 

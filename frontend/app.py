@@ -17,7 +17,7 @@ import streamlit as st
 # ============================================================
 
 st.set_page_config(
-    page_title="OBE DCCT Agent - ĐH Đà Nẵng",
+    page_title="OBE DCCT Agent - ĐH Đại Nam",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -87,7 +87,7 @@ with st.sidebar:
     st.markdown("**Thông tin:**")
     st.caption("🤖 LangGraph Agentic Workflow")
     st.caption("📚 OBE / AUN-QA Standard")
-    st.caption("🏫 Khoa CNTT - ĐH Đà Nẵng")
+    st.caption("🏫 Khoa CNTT - ĐH Đại Nam")
 
 # ============================================================
 # MAIN HEADER
@@ -141,9 +141,9 @@ with st.form("course_input_form", clear_on_submit=False):
     )
 
     outline = st.text_area(
-        "Đề cương tham khảo (không bắt buộc)",
-        placeholder="Dán đề cương cũ hoặc danh sách chủ đề chính...",
-        height=100,
+        "Sườn nội dung buổi học (khuyến nghị mạnh)",
+            placeholder="Dán sườn nội dung các buổi học (outline), hoặc đề cương cũ...",
+            height=100,
     )
 
     col3, col4 = st.columns(2)
