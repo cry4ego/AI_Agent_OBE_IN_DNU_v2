@@ -68,3 +68,33 @@ def retrieve_domain_context(
         return ""
     return "\n\n".join(chunks)
 
+
+# ── TASK 4: Reranker với cross-encoder ────────────────────────────────────────
+
+def rerank_results(
+    docs: list,
+    query: str,
+    top_k: int = 5,
+) -> list:
+    """
+    Sắp xếp lại kết quả retrieval bằng cross-encoder reranker.
+    """
+    if not docs:
+        return docs
+
+    try:
+        from sentence_transformers import CrossEncoder
+
+        model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+        pairs = [(query, d.page_content) for d in docs]
+        scores = model.predict(pairs)
+
+        scored_docs = sorted(
+            zip(docs, scores), key=lambda x: x[1], reverse=True
+        )
+        reranked = [doc for doc, _ in scored_docs[:top_k]]
+        return reranked
+
+    except Exception as e:
+        # Nếu không load được cross-encoder, trả về top_k docs ban đầu
+        return docs[:top_k]

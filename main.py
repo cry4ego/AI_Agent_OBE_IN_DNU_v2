@@ -4,6 +4,7 @@ from config import validate_config
 from state import DCCTState
 from graph import get_graph
 from rag.index_builder import initialize_rag
+from rag.document_loader import read_file   # thêm import
 
 async def run_agent(
     course_code: str,
@@ -61,7 +62,11 @@ async def run_agent(
     graph = get_graph()
 
     try:
-        result = await graph.ainvoke(initial_state)
+        config = {
+            "configurable": {"thread_id": "1"},
+            "recursion_limit": 200,
+        }
+        result = await graph.ainvoke(initial_state, config=config)
         print(f"✅ Hoàn thành. Confidence: {result.get('confidence_score', 0):.1f}%")
         return result
     except Exception as e:
@@ -69,11 +74,23 @@ async def run_agent(
         return None
 
 if __name__ == "__main__":
+    # Đọc file docx chứa lộ trình môn học
+    outline_path = "uploads/Lộ trình học phần Xử lý ngôn ngữ tự nhiên.docx"
+    try:
+        outline_text = read_file(outline_path)
+        print(f"✅ Đã đọc outline từ file: {outline_path}")
+    except FileNotFoundError:
+        print(f"⚠️ Không tìm thấy file {outline_path}, sẽ chạy không có outline.")
+        outline_text = None
+    except Exception as e:
+        print(f"⚠️ Lỗi đọc file: {e}, sẽ chạy không có outline.")
+        outline_text = None
+
     asyncio.run(run_agent(
         course_code="CSC4007",
         course_name="Xử lý ngôn ngữ tự nhiên",
         summary="Học phần về NLP và LLM, bao gồm prompt engineering, fine-tuning, RAG",
         credits="3",
         program="KHMT",
-        outline=None,
+        outline=outline_text,   # truyền nội dung file docx
     ))

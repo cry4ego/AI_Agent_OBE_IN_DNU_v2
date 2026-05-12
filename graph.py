@@ -31,8 +31,19 @@ def decide_after_validator(state: DCCTState):
     Quyết định bước tiếp theo sau Final Validator dựa trên confidence_score
     """
     confidence = state.get("confidence_score", 0.0)
-
-    if confidence >= 90:
+    
+    # === THAY ĐỔI QUAN TRỌNG Ở ĐÂY ===
+    # Lấy tổng số lần retry từ state để làm điều kiện dừng cuối cùng
+    retry_counts = state.get("retry_counts", {})
+    total_retries = sum(retry_counts.values())
+    
+    # Nếu tổng số lần retry >= 3, bắt buộc xuất file dù điểm thấp
+    # Đây là "van an toàn" để phá vỡ vòng lặp vô hạn
+    if total_retries >= 3:
+        print(f"ℹ️  Tổng số lần retry ({total_retries}) đã đạt ngưỡng, tự động xuất file.")
+        return "export"
+    # === KẾT THÚC THAY ĐỔI ===
+    elif confidence >= 90:
         return "export"          # Tự động xuất file Word
     elif confidence >= 70:
         return "preview"         # Vào Preview Mode

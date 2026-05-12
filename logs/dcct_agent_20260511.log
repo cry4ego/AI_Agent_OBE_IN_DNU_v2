@@ -1,0 +1,14 @@
+{"asctime": "2026-05-11 14:32:48,102", "name": "rag.legal_chunker", "levelname": "INFO", "message": "LegalChunker: 42591 docs -> 42591 chunks"}
+{"asctime": "2026-05-11 14:32:48,102", "name": "rag.legal_chunker", "levelname": "INFO", "message": "LegalChunker: 42591 docs -> 42591 chunks"}
+{"asctime": "2026-05-11 14:58:35,444", "name": "rag.legal_chunker", "levelname": "INFO", "message": "LegalChunker: 42591 docs -> 42591 chunks"}
+{"asctime": "2026-05-11 14:58:35,444", "name": "rag.legal_chunker", "levelname": "INFO", "message": "LegalChunker: 42591 docs -> 42591 chunks"}
+{"asctime": "2026-05-11 15:01:25,893", "name": "rag.index_builder", "levelname": "WARNING", "message": "D\u00f9ng FakeEmbeddings v\u00ec ch\u01b0a c\u00f3 embedding local cho RAG."}
+{"asctime": "2026-05-11 15:01:25,893", "name": "rag.index_builder", "levelname": "WARNING", "message": "D\u00f9ng FakeEmbeddings v\u00ec ch\u01b0a c\u00f3 embedding local cho RAG."}
+{"asctime": "2026-05-11 15:35:47,173", "name": "rag.legal_chunker", "levelname": "INFO", "message": "LegalChunker: 42591 docs -> 42591 chunks"}
+{"asctime": "2026-05-11 15:35:47,173", "name": "rag.legal_chunker", "levelname": "INFO", "message": "LegalChunker: 42591 docs -> 42591 chunks"}
+{"asctime": "2026-05-11 15:58:00,889", "name": "rag.legal_chunker", "levelname": "INFO", "message": "LegalChunker: 2000 docs -> 2000 chunks"}
+{"asctime": "2026-05-11 15:58:00,889", "name": "rag.legal_chunker", "levelname": "INFO", "message": "LegalChunker: 2000 docs -> 2000 chunks"}
+{"asctime": "2026-05-11 15:59:45,481", "name": "rag.index_builder", "levelname": "INFO", "message": "Vector store 'legal_knowledge' t\u1ea1o th\u00e0nh c\u00f4ng (2000 documents)"}
+{"asctime": "2026-05-11 15:59:45,481", "name": "rag.index_builder", "levelname": "INFO", "message": "Vector store 'legal_knowledge' t\u1ea1o th\u00e0nh c\u00f4ng (2000 documents)"}
+{"asctime": "2026-05-11 16:00:19,378", "name": "agents.legal_agent", "levelname": "INFO", "message": "[LegalAgent] Nh\u1eadn c\u00e2u h\u1ecfi: Th\u1ee7 t\u1ee5c th\u00e0nh l\u1eadp c\u00f4ng ty TNHH m\u1ed9t th\u00e0nh vi\u00ean nh\u01b0 th\u1ebf n\u00e0o?..."}
+{"asctime": "2026-05-11 16:00:19,378", "name": "agents.legal_agent", "levelname": "INFO", "message": "[LegalAgent] Nh\u1eadn c\u00e2u h\u1ecfi: Th\u1ee7 t\u1ee5c th\u00e0nh l\u1eadp c\u00f4ng ty TNHH m\u1ed9t th\u00e0nh vi\u00ean nh\u01b0 th\u1ebf n\u00e0o?..."}

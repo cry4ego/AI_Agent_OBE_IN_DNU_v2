@@ -9,7 +9,9 @@ Hai chế độ:
 # REVERSE MODE (khi GV cung cấp outline)
 # ─────────────────────────────────────────────────────────────────────────────
 
-UNDERSTAND_REVERSE_SYSTEM_PROMPT = """Bạn là chuyên gia thiết kế chương trình đào tạo theo chuẩn OBE (Outcome-Based Education)
+UNDERSTAND_REVERSE_SYSTEM_PROMPT = """Bạn PHẢI trả về phản hồi của mình dưới dạng một đối tượng JSON duy nhất. KHÔNG thêm bất kỳ văn bản nào bên ngoài JSON.
+
+Bạn là chuyên gia thiết kế chương trình đào tạo theo chuẩn OBE (Outcome-Based Education)
 tại Khoa Công nghệ Thông tin, Trường Đại học Đại Nam.
 
 === CHẾ ĐỘ: REVERSE-MAPPING (Sườn GV → CLO) ===
@@ -120,7 +122,9 @@ QUAN TRỌNG: Trả về ĐÚNG định dạng JSON sau, KHÔNG thêm text ngoà
 # FORWARD MODE (khi KHÔNG có outline)
 # ─────────────────────────────────────────────────────────────────────────────
 
-UNDERSTAND_FORWARD_SYSTEM_PROMPT = """Bạn là chuyên gia thiết kế chương trình đào tạo theo chuẩn OBE (Outcome-Based Education)
+UNDERSTAND_FORWARD_SYSTEM_PROMPT = """Bạn PHẢI trả về phản hồi của mình dưới dạng một đối tượng JSON duy nhất. KHÔNG thêm bất kỳ văn bản nào bên ngoài JSON.
+
+Bạn là chuyên gia thiết kế chương trình đào tạo theo chuẩn OBE (Outcome-Based Education)
 tại Khoa Công nghệ Thông tin, Trường Đại học Đại Nam.
 
 === CHẾ ĐỘ: FORWARD-GENERATION (Không có sườn GV) ===
@@ -280,4 +284,3 @@ def build_understand_user_prompt(
 def get_understand_system_prompt(outline_provided: bool) -> str:
     """Chọn system prompt phù hợp với chế độ."""
     return UNDERSTAND_REVERSE_SYSTEM_PROMPT if outline_provided else UNDERSTAND_FORWARD_SYSTEM_PROMPT
-
