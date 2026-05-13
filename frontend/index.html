@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LexAI - Trợ lý Pháp lý Thông minh</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <aside id="sidebar">
+        <div class="logo-container">
+            <h1 class="logo">LexAI</h1>
+            <div class="logo-subtext">LEGAL INTELLIGENCE SYSTEM</div>
+        </div>
+
+        <div class="field-label">LĨNH VỰC TƯ VẤN</div>
+        <nav id="field-list">
+            <button class="field-btn active" onclick="selectField('HD_Laodong', this)">
+                <i class="fas fa-briefcase"></i> Hợp đồng Lao động
+            </button>
+            <button class="field-btn" onclick="selectField('HD_Thuongmai', this)">
+                <i class="fas fa-handshake"></i> Hợp đồng Thương mại
+            </button>
+            <button class="field-btn" onclick="selectField('Luat_DN', this)">
+                <i class="fas fa-building"></i> Luật Doanh nghiệp
+            </button>
+            <button class="field-btn" onclick="selectField('CS_Hr', this)">
+                <i class="fas fa-users-cog"></i> Chính sách Nhân sự
+            </button>
+            <button class="field-btn" onclick="selectField('Thue_Taichinh', this)">
+                <i class="fas fa-file-invoice-dollar"></i> Thuế & Tài chính
+            </button>
+            <button class="field-btn" onclick="selectField('Tranhchap_xuli', this)">
+                <i class="fas fa-gavel"></i> Tranh chấp & Xử lý
+            </button>
+        </nav>
+
+        <div class="system-info">
+            <div class="status-indicator">
+                <span class="dot"></span> 
+                <small>Model: Qwen-7B Online</small>
+            </div>
+            <div class="footer-note">
+                <i class="fas fa-university"></i> FIT-DNU Research Project
+            </div>
+        </div>
+    </aside>
+
+    <main id="chat-main">
+        <header>
+            <div class="header-content">
+                <h2 class="header-title">Trợ lý Pháp lý ⚖️</h2>
+                <p id="current-field-text" class="header-subtitle">Đang tư vấn: Hợp đồng Lao động</p>
+            </div>
+            <div class="header-status">
+                <span class="status-badge"><i class="fas fa-database"></i> Knowledge Base Ready</span>
+            </div>
+        </header>
+
+        <section id="messages">
+            <div class="msg bot">
+                <div class="msg-content">
+                    <b>⚖️ LexAI:</b><br>
+                    Chào Vinh! Tôi là hệ thống tư vấn pháp lý thông minh. Toàn bộ dữ liệu luật đã được nạp vào bộ nhớ GPU. Bạn cần tôi hỗ trợ gì về lĩnh vực <b>Hợp đồng Lao động</b> không?
+                </div>
+            </div>
+        </section>
+
+        <footer class="input-area">
+            <div class="input-wrapper">
+                <input type="text" id="user-query" placeholder="Nhập câu hỏi pháp lý của bạn tại đây..." autocomplete="off">
+                <button id="send-btn" onclick="ask()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </footer>
+    </main>
+
+    <script src="script.js"></script>
+
+</body>
+</html>

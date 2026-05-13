@@ -10,7 +10,7 @@ from langchain_core.embeddings import Embeddings
 from utils.local_llm import generate_response  # Qwen local
 from langchain_community.utilities import GoogleSerperAPIWrapper
 from langchain_community.document_loaders import WebBaseLoader
-
+from typing import List, Dict, Any, Optional
 # ============================================================
 # 1. Embedding LOCAL
 # ============================================================
@@ -29,10 +29,27 @@ class LocalEmbedding(Embeddings):
 # ============================================================
 def chunk_all_md(base_dir: str) -> List[Document]:
     all_docs = []
-    files = glob.glob(os.path.join(base_dir, "**/*.md"), recursive=True)
+    
+    # Sử dụng os.path.abspath để chuyển về đường dẫn tuyệt đối, tránh lỗi đứng sai vị trí
+    absolute_base_dir = os.path.abspath(base_dir)
+    
+    # Mẫu tìm kiếm: quét sâu vào tất cả thư mục con (**) để tìm file .md
+    search_pattern = os.path.join(absolute_base_dir, "**", "*.md")
+    
+    # recursive=True cho phép quét sâu vào các thư mục như HD_Laodong, CS_Hr...
+    files = glob.glob(search_pattern, recursive=True)
+    
+    print(f"--- Đang quét tại: {absolute_base_dir} ---")
     print(f"Tìm thấy {len(files)} file .md")
+    
+    if len(files) == 0:
+        print("⚠️ CẢNH BÁO: Không tìm thấy file nào. Kiểm tra lại đường dẫn!")
+        # In ra nội dung thư mục để debug
+        if os.path.exists(absolute_base_dir):
+            print(f"Nội dung thư mục gốc: {os.listdir(absolute_base_dir)}")
+
     for fpath in files:
-        print(f"  Đang xử lý: {fpath}")
+        print(f"  > Đang xử lý: {os.path.relpath(fpath, absolute_base_dir)}")
         docs = chunk_single_md(fpath)
         all_docs.extend(docs)
     return all_docs
@@ -244,7 +261,7 @@ async def main():
     vs = build_index(docs)
     print("Index thành công.")
 
-    question = "Thủ tục li hôn như thế nào?"
+    question = "Thiết kế giáo án giảng dạy cho các học phần thuộc lĩnh vực công nghệ thông tin, bao gồm: Mạng máy tính, Cơ sở dữ liệu, An ninh mạng, Lập trình hướng đối tượng, Trí tuệ nhân tạo. Mỗi học phần nên có ít nhất 5 buổi học, với nội dung chi tiết cho từng buổi."
     print(f"\nHỏi: {question}")
     
     answer, sources, source_type = await ask_with_smart_router(question, vs)
